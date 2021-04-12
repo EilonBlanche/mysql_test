@@ -1,0 +1,38 @@
+1. Write a query to display the ff columns ID (should start
+with T + 11 digits of trn_teacher.id with leading zeros like
+'T00000088424'), Nickname, Status and Roles (like
+Trainer/Assessor/Staff) using table trn_teacher and
+trn_teacher_role.
+
+SELECT CONCAT("T", LPAD(trn_teacher.id,11.'0')) as ID, 
+       trn_teacher.nickname as Nickname, 
+       trn_teacher.status as Status, 
+       CASE 
+        WHEN trn_teacher_role.role = 1 THEN "Trainer"
+        WHEN trn_teacher_role.role = 2 THEN "Assessor"
+        WHEN trn_teacher_role.role = 3 THEN "Staff"
+       END as Roles
+FROM trn_teacher 
+INNER JOIN trn_teacher_role ON trn_teacher.id = trn_teacher_role.teacher_id
+
+
+2. Write a query to display the ff columns ID (from teacher.id),
+Nickname, Open (total open slots from trn_teacher_time_table),
+Reserved (total reserved slots from trn_teacher_time_table),
+Taught (total taught from trn_evaluation) and NoShow (total
+no_show from trn_evaluation) using all tables above. Should
+show only those who are active (trn_teacher.status = 1 or 2)
+and those who have both Trainer 
+
+SELECT trn_teacher.id as ID, 
+       trn_teacher.nickname as Nickname,
+       COUNT(SELECT * FROM trn_time_table WHERE status = 1) as "Open",
+       COUNT(SELECT * FROM trn_time_table WHERE status = 3) as "Reserved",
+       COUNT(SELECT * FROM trn_evaluation WHERE result = 1) as "Taught",
+       COUNT(SELECT * FROM trn_evaluation WHERE result = 2) as "No Show"
+       FROM trn_teacher 
+       INNER JOIN trn_teacher_role on trn_teacher.teacher_id = trn_teacher_role.teacher_id
+       INNER JOIN trn_time_table on trn_teacher.teacher_id = trn_time_table.teacher_id
+       INNER JOIN trn_evaluation on trn_teacher.teacher_id = trn_evaluation.teacher_id
+       WHERE (trn_teacher.status = 1 OR trn_teacher.status = 2) AND (trn_teacher_role.role = 1 OR trn_teacher_role.role = 2)
+       GROUP BY trn_teacher.teacher_id
